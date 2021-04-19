@@ -1,53 +1,16 @@
 from __future__ import print_function
 
 import re
-import sys
-
 import nltk
 import numpy as np
-from operator import add
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
-import numpy as np
-from pyspark import SparkContext
-from pyspark.sql import SparkSession
-from pyspark.ml.linalg import DenseVector
-from pyspark.ml.classification import LogisticRegression
-from pyspark.sql import SQLContext
-from pyspark.sql import functions as F
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.functions import array, avg, col
 import pandas as pd
-import sys
-from operator import add
 from pyspark import SparkContext
-import re
-import sys
-import numpy as np
-from operator import add
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
-import numpy as np
-from pyspark import SparkContext
-from pyspark.sql import SparkSession
-from pyspark.ml.linalg import DenseVector
-from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.feature import StopWordsRemover
 from pyspark.sql import SQLContext
-from pyspark.sql import functions as F
-from pyspark.sql import functions as F
-from pyspark.sql import types as T
-from pyspark.sql.functions import array, avg, col
-from pyspark.ml.feature import StopWordsRemover
-from pyspark.sql.functions import udf
-from pyspark.sql.types import StringType
-from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import stopwords
-from nltk import pos_tag
-import string
-import re
-from pyspark.ml.feature import StopWordsRemover
-from pyspark.ml.feature import Tokenizer
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+from pyspark.mllib.regression import LabeledPoint
+from pyspark.mllib.tree import RandomForest
 
 nltk.download('stopwords')
 
@@ -113,13 +76,52 @@ allDictionaryWords = dictionary.join(allWordsWithDocID)
 justDocAndPos = allDictionaryWords.map(lambda x: (x[1][1], x[1][0]))
 allDictionaryWordsInEachDoc = justDocAndPos.groupByKey()
 allDocsAsNumpyArrays = allDictionaryWordsInEachDoc.map(lambda x: (x[0], buildArray(x[1])))
+print(allDocsAsNumpyArrays.take(10))
 zeroOrOne = allDocsAsNumpyArrays.map(lambda x: (x[0], np.clip (np.multiply (x[1], 9e9), 0, 1)))
 dfArray = zeroOrOne.reduce(lambda x1, x2: ("", np.add(x1[1], x2[1])))[1]
-print(dfArray.take(5))
 multiplier = np.full(20000, numberOfDocs)
 idfArray = np.log(np.divide(np.full(20000, numberOfDocs), dfArray))
-print(idfArray.take(5))
 allDocsAsNumpyArrays = allDocsAsNumpyArrays.map(lambda x: (x[0], np.multiply(x[1], idfArray)))
-print(allDocsAsNumpyArrays.take(2))
-# allDocsAsNumpyArrays = allDictionaryWordsInEachDoc.map(lambda x: (x[0], buildArray(x[1])))
-# print(allDocsAsNumpyArrays.take(30))
+print(allDocsAsNumpyArrays.take(10))
+
+def convert(value):
+	if 'HongKong' in value:
+		return 0.0
+	elif 'California' in value:
+		return 1.0
+	else:
+		return 2.0
+
+
+# convert AU to 1 and wiki docs to 0
+myRDD = allDocsAsNumpyArrays
+test = myRDD.map(lambda x: x[0])
+print(test.take(1000))
+new_RDD = myRDD.map(lambda x: (convert(x[0]), x[1]))
+new_RDD = new_RDD.map(lambda x: LabeledPoint(x[0], x[1]))
+
+
+# print(new_RDD.count())
+# # Split the data into training and test sets (30% held out for testing)
+# trainingData, testData = new_RDD.randomSplit([.5, .5])
+# print(trainingData.count())
+# print(testData.count())
+#
+# import psutl
+# # Train a RandomForest model.
+# #  Empty categoricalFeaturesInfo indicates all features are continuous.
+# #  Note: Use larger numTrees in practice.
+# #  Setting featureSubsetStrategy="auto" lets the algorithm choose.
+# model = RandomForest.trainClassifier(trainingData, numClasses=3, categoricalFeaturesInfo={},
+# 									 numTrees=10, featureSubsetStrategy="auto",
+#                                      impurity='gini', maxDepth=5, maxBins=32)
+#
+# # Evaluate model on test instances and compute test error
+# predictions = model.predict(testData.map(lambda x: x.features))
+# labelsAndPredictions = testData.map(lambda lp: lp.label).zip(predictions)
+# print(labelsAndPredictions)
+# testErr = labelsAndPredictions.filter(
+#     lambda lp: lp[0] != lp[1]).count() / float(testData.count())
+# print('Test Error = ' + str(testErr))
+# print('Learned classification forest model:')
+# print(model.toDebugString())
