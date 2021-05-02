@@ -1,54 +1,23 @@
-# pyspark-template
-
-This is a pyspark project template
+# Disneyland Reviews
 
 
-## Describe here your project
 
-
-This is a very simple HelloWorld example in pyspark. 
-
-
-# Submit your python scripts .py 
-
-If your assignment has 3 tasks you need to commit the 3 scripts only and overwrite them. You can then delete the script number 4 ( main_task4.py 
-)
-
-If your assignment has 4 tasks then you can use all of them. 
-
-# Other Documents. 
-
-You can write your task description in this Markdown file or You can generate PDF file and added to the doc/ folder of your repository. 
-
-Please note in your README.md file where your task description file is.  
+This project looks at disneyland reviews from 3 different branches (Paris, Hong Kong, and California) and uses the predictions from a random forest model to understand the top words that differentiate each park.
 
 
 # How to run  
 
-Run the task 1 by submitting the task to spark-submit. 
+Run the project (disneyproject.py) by submitting the task to spark-submit along with the name of the file.
 
 
 ```python
 
-spark-submit main_task1.py 
+spark-submit disneyproject.py DisneylandReviews.csv OUTPUT
 
 ```
 
+# View Results
 
-
-```python
-
-spark-submit main_task2.py 
-
-```
-
-
-
-```python
-
-spark-submit main_task3.py 
-
-```
-
+The results of the project are saved in final_project_notebook.ipynb and a presntation walkthrough is saved in FinalProject.pptx.
 
 
